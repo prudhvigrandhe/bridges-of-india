@@ -15,7 +15,7 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = "super-secret-key-change-me"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///bridges.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///bridges.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Upload configuration
