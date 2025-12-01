@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bridges of India</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo">Bridges of India</div>
+    <nav>
+        <a href="{{ url_for('home') }}">User</a>
+      
+        {% if session.get('role') == 'editor' %}
+          <a href="{{ url_for('add_bridge') }}">Editor</a>
+          <a href="{{ url_for('logout') }}">Logout ({{ session.get('username') }})</a>
+        {% else %}
+          <a href="{{ url_for('login') }}">Login as Editor</a>
+        {% endif %}
+      </nav>      
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

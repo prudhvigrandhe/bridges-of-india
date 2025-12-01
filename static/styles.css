@@ -1,0 +1,158 @@
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background-color: #f5f6fa;
+    color: #222;
+    margin: 0;
+  }
+  
+  /* NAVBAR */
+  
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1e3a8a;
+    padding: 12px 20px;
+    color: white;
+    flex-wrap: wrap; /* allow wrapping on small screens */
+  }
+  
+  .navbar a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+    font-weight: bold;
+  }
+  
+  .navbar a:hover {
+    text-decoration: underline;
+  }
+  
+  /* LAYOUT */
+  
+  .container {
+    padding: 20px 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  
+  h1, h2 {
+    color: #1e3a8a;
+  }
+  
+  /* CARDS & FILTERS */
+  
+  .filters, .famous-bridges {
+    background: white;
+    padding: 16px;
+    margin-top: 16px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  
+  .filter-row {
+    margin-bottom: 12px;
+  }
+  
+  select,
+  button,
+  input,
+  textarea {
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    width: 100%;
+    max-width: 320px;
+    box-sizing: border-box;
+  }
+  
+  button {
+    background-color: #1e3a8a;
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  button:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+  }
+  
+  /* BRIDGE GRID */
+  
+  .bridge-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 10px;
+  }
+  
+  .bridge-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+  
+  .bridge-card img {
+    width: 100%;
+    border-radius: 8px;
+    max-height: 180px;
+    object-fit: cover;
+  }
+  
+  .bridge-card h3 {
+    color: #1e3a8a;
+    margin-bottom: 5px;
+  }
+  
+  .bridge-card p {
+    margin: 0;
+    color: #555;
+  }
+  
+  /* MOBILE RESPONSIVE STYLES */
+  
+  @media (max-width: 768px) {
+    .navbar {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+  
+    .navbar a {
+      margin-left: 0;
+      margin-right: 16px;
+    }
+  
+    .container {
+      padding: 16px 12px;
+    }
+  
+    .filters, .famous-bridges {
+      padding: 12px;
+      margin-top: 12px;
+    }
+  
+    .bridge-grid {
+      grid-template-columns: 1fr; /* single column on phones */
+    }
+  }
+  
+  @media (max-width: 480px) {
+    h1 {
+      font-size: 22px;
+    }
+  
+    h2 {
+      font-size: 18px;
+    }
+  
+    .navbar {
+      padding: 10px 12px;
+    }
+  }
+  

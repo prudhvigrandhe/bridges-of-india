@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Editor – Add New Bridge</h1>
+
+<form method="post" enctype="multipart/form-data">
+  <div class="filters">
+    <h2>Select Location</h2>
+
+    <div class="filter-row">
+      <label>Country:</label>
+      <select id="country-select">
+        <option value="">-- Select Country --</option>
+        {% for c in countries %}
+        <option value="{{ c.id }}">{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-row">
+      <label>State:</label>
+      <select id="state-select" disabled>
+        <option value="">-- Select State --</option>
+      </select>
+    </div>
+
+    <div class="filter-row">
+      <label>District:</label>
+      <!-- this is the one actually submitted -->
+      <select id="district-select" name="district_id" disabled required>
+        <option value="">-- Select District --</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="filters" style="margin-top: 20px;">
+    <h2>Bridge Details</h2>
+
+    <div class="filter-row">
+      <label>Bridge Name:</label><br>
+      <input type="text" name="name" required>
+    </div>
+
+    <div class="filter-row">
+      <label>River Name:</label><br>
+      <input type="text" name="river_name">
+    </div>
+
+    <div class="filter-row">
+      <label>Year Built:</label><br>
+      <input type="number" name="year_built" min="0">
+    </div>
+
+    <div class="filter-row">
+      <label>Bridge Type:</label><br>
+      <input type="text" name="bridge_type" placeholder="Suspension, Arch, Beam, etc.">
+    </div>
+
+    <div class="filter-row">
+        <label>Image URL (optional):</label><br>
+        <input type="url" name="image_url" placeholder="https://example.com/bridge.jpg">
+      </div>
+      
+      <div class="filter-row">
+        <label>OR Upload Image File:</label><br>
+        <input type="file" name="image_file" accept="image/*">
+      </div>      
+
+    <div class="filter-row">
+      <label>Description:</label><br>
+      <textarea name="description" rows="4" cols="40"></textarea>
+    </div>
+
+    <button type="submit">Save Bridge</button>
+  </div>
+</form>
+
+<script>
+  // Same cascading dropdown logic as home.html, but writes district_id into the form
+  const countrySelect = document.getElementById("country-select");
+  const stateSelect = document.getElementById("state-select");
+  const districtSelect = document.getElementById("district-select");
+
+  countrySelect.addEventListener("change", async () => {
+    const countryId = countrySelect.value;
+    stateSelect.innerHTML = '<option value="">-- Select State --</option>';
+    districtSelect.innerHTML = '<option value="">-- Select District --</option>';
+    stateSelect.disabled = true;
+    districtSelect.disabled = true;
+
+    if (!countryId) return;
+
+    const res = await fetch(`/api/states?country_id=${countryId}`);
+    const states = await res.json();
+    states.forEach((s) => {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = s.name;
+      stateSelect.appendChild(opt);
+    });
+    stateSelect.disabled = false;
+  });
+
+  stateSelect.addEventListener("change", async () => {
+    const stateId = stateSelect.value;
+    districtSelect.innerHTML = '<option value="">-- Select District --</option>';
+    districtSelect.disabled = true;
+
+    if (!stateId) return;
+
+    const res = await fetch(`/api/districts?state_id=${stateId}`);
+    const districts = await res.json();
+    districts.forEach((d) => {
+      const opt = document.createElement("option");
+      opt.value = d.id;
+      opt.textContent = d.name;
+      districtSelect.appendChild(opt);
+    });
+    districtSelect.disabled = false;
+  });
+</script>
+
+{% endblock %}

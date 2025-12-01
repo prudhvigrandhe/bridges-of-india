@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block content %}
+
+<form method="get" action="{{ url_for('search') }}" class="filters" style="margin-bottom: 20px;">
+    <label>Search Bridges:</label>
+    <input type="text" name="q" placeholder="Name or river">
+    <button type="submit">Search</button>
+  </form>  
+
+<h1>Explore Bridges in India</h1>
+
+<section class="filters">
+  <h2>Search by Location</h2>
+
+  <div class="filter-row">
+    <label>Country:</label>
+    <select id="country-select">
+      <option value="">-- Select Country --</option>
+      {% for c in countries %}
+      <option value="{{ c.id }}">{{ c.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="filter-row">
+    <label>State:</label>
+    <select id="state-select" disabled>
+      <option value="">-- Select State --</option>
+    </select>
+  </div>
+
+  <div class="filter-row">
+    <label>District:</label>
+    <select id="district-select" disabled>
+      <option value="">-- Select District --</option>
+    </select>
+  </div>
+
+  <div class="filter-row">
+    <label>Bridge:</label>
+    <select id="bridge-select" disabled>
+      <option value="">-- Select Bridge --</option>
+    </select>
+  </div>
+
+  <button id="view-bridge-btn" disabled>View Bridge Info</button>
+</section>
+
+<section class="bridge-details" id="bridge-details" style="display:none;">
+  <h2 id="bridge-name"></h2>
+  <img id="bridge-image" alt="Bridge image" style="max-width:400px; display:block; margin-bottom:10px;" />
+  <p><strong>River:</strong> <span id="bridge-river"></span></p>
+  <p><strong>Location:</strong> <span id="bridge-location"></span></p>
+  <p><strong>Year Built:</strong> <span id="bridge-year"></span></p>
+  <p><strong>Type:</strong> <span id="bridge-type"></span></p>
+  <p id="bridge-description"></p>
+</section>
+
+<section class="famous-bridges">
+  <h2>Famous Bridges</h2>
+  <div class="bridge-grid">
+    {% for b in famous_bridges %}
+    <div class="bridge-card">
+      <img src="{{ b.image_url }}" alt="{{ b.name }}" />
+      <h3>{{ b.name }}</h3>
+      <p>
+        {% if b.district and b.district.state %}
+          {{ b.district.name }}, {{ b.district.state.name }}
+        {% else %}
+          Location unknown
+        {% endif %}
+      </p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<script>
+  const countrySelect = document.getElementById("country-select");
+  const stateSelect = document.getElementById("state-select");
+  const districtSelect = document.getElementById("district-select");
+  const bridgeSelect = document.getElementById("bridge-select");
+  const viewBtn = document.getElementById("view-bridge-btn");
+
+  const detailsSection = document.getElementById("bridge-details");
+  const bridgeName = document.getElementById("bridge-name");
+  const bridgeImage = document.getElementById("bridge-image");
+  const bridgeRiver = document.getElementById("bridge-river");
+  const bridgeLocation = document.getElementById("bridge-location");
+  const bridgeYear = document.getElementById("bridge-year");
+  const bridgeType = document.getElementById("bridge-type");
+  const bridgeDescription = document.getElementById("bridge-description");
+
+  countrySelect.addEventListener("change", async () => {
+    const countryId = countrySelect.value;
+    stateSelect.innerHTML = '<option value="">-- Select State --</option>';
+    districtSelect.innerHTML = '<option value="">-- Select District --</option>';
+    bridgeSelect.innerHTML = '<option value="">-- Select Bridge --</option>';
+    stateSelect.disabled = true;
+    districtSelect.disabled = true;
+    bridgeSelect.disabled = true;
+    viewBtn.disabled = true;
+
+    if (!countryId) return;
+
+    const res = await fetch(`/api/states?country_id=${countryId}`);
+    const states = await res.json();
+    states.forEach((s) => {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = s.name;
+      stateSelect.appendChild(opt);
+    });
+    stateSelect.disabled = false;
+  });
+
+  stateSelect.addEventListener("change", async () => {
+    const stateId = stateSelect.value;
+    districtSelect.innerHTML = '<option value="">-- Select District --</option>';
+    bridgeSelect.innerHTML = '<option value="">-- Select Bridge --</option>';
+    districtSelect.disabled = true;
+    bridgeSelect.disabled = true;
+    viewBtn.disabled = true;
+
+    if (!stateId) return;
+
+    const res = await fetch(`/api/districts?state_id=${stateId}`);
+    const districts = await res.json();
+    districts.forEach((d) => {
+      const opt = document.createElement("option");
+      opt.value = d.id;
+      opt.textContent = d.name;
+      districtSelect.appendChild(opt);
+    });
+    districtSelect.disabled = false;
+  });
+
+  districtSelect.addEventListener("change", async () => {
+    const districtId = districtSelect.value;
+    bridgeSelect.innerHTML = '<option value="">-- Select Bridge --</option>';
+    bridgeSelect.disabled = true;
+    viewBtn.disabled = true;
+
+    if (!districtId) return;
+
+    const res = await fetch(`/api/bridges?district_id=${districtId}`);
+    const bridges = await res.json();
+    bridges.forEach((b) => {
+      const opt = document.createElement("option");
+      opt.value = b.id;
+      opt.textContent = b.name;
+      bridgeSelect.appendChild(opt);
+    });
+    bridgeSelect.disabled = false;
+  });
+
+  bridgeSelect.addEventListener("change", () => {
+    viewBtn.disabled = !bridgeSelect.value;
+  });
+
+  viewBtn.addEventListener("click", async () => {
+    const bridgeId = bridgeSelect.value;
+    if (!bridgeId) return;
+    const res = await fetch(`/api/bridges/${bridgeId}`);
+    const b = await res.json();
+
+    bridgeName.textContent = b.name;
+    bridgeImage.src = b.image_url || "";
+    bridgeImage.style.display = b.image_url ? "block" : "none";
+    bridgeRiver.textContent = b.river_name || "N/A";
+    bridgeLocation.textContent = `${b.district}, ${b.state}, ${b.country}`;
+    bridgeYear.textContent = b.year_built || "Unknown";
+    bridgeType.textContent = b.bridge_type || "Unknown";
+    bridgeDescription.textContent = b.description || "";
+
+    detailsSection.style.display = "block";
+  });
+</script>
+
+{% endblock %}
