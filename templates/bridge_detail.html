@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="display: flex; align-items: flex-start; margin: 20px;">
+  <!-- Image on the left -->
+  <div style="flex: 1; padding-right: 20px;">
+    {% if bridge.image_url %}
+      {% if bridge.image_url.startswith('http') %}
+        <img src="{{ bridge.image_url }}" alt="{{ bridge.name }}" style="width: 100%; border-radius: 8px;">
+      {% else %}
+        <img src="{{ url_for('static', filename=bridge.image_url) }}" alt="{{ bridge.name }}" style="width: 100%; border-radius: 8px;">
+      {% endif %}
+    {% else %}
+      <img src="https://via.placeholder.com/500x300?text=No+Image" alt="No image available" style="width: 100%; border-radius: 8px;">
+    {% endif %}
+  </div>
+
+  <!-- Information on the right -->
+  <div style="flex: 2;">
+    <h1>{{ bridge.name }}</h1>
+    <p><strong>River:</strong> {{ bridge.river_name or "N/A" }}</p>
+    <p><strong>Year Built:</strong> {{ bridge.year_built or "Unknown" }}</p>
+    <p><strong>Type:</strong> {{ bridge.bridge_type or "Not specified" }}</p>
+    <p><strong>District:</strong> {{ bridge.district.name }}</p>
+    <p><strong>State:</strong> {{ bridge.district.state.name }}</p>
+    <p><strong>Description:</strong> {{ bridge.description or "No description available." }}</p>
+    <a href="{{ url_for('home') }}" class="back-link">← Back to Home</a>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,15 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
 
-<form method="get" action="{{ url_for('search') }}" class="filters" style="margin-bottom: 20px;">
-    <label>Search Bridges:</label>
-    <input type="text" name="q" placeholder="Name or river">
-    <button type="submit">Search</button>
-  </form>  
-
 <h1>Explore Bridges in India</h1>
 
-<section class="filters">
+<!-- 🔍 Search Bar -->
+<form method="get" action="{{ url_for('search') }}" class="filters" style="margin-bottom: 20px;">
+  <label>Search Bridges:</label>
+  <input type="text" name="q" placeholder="Name or river">
+  <button type="submit">Search</button>
+</form>
+
+<!-- 🌏 Filters by Location -->
+<div class="filters">
   <h2>Search by Location</h2>
 
   <div class="filter-row">
@@ -43,54 +45,34 @@
     </select>
   </div>
 
-  <button id="view-bridge-btn" disabled>View Bridge Info</button>
-</section>
+  <button id="view-btn" disabled>View Bridge Info</button>
+</div>
 
-<section class="bridge-details" id="bridge-details" style="display:none;">
-  <h2 id="bridge-name"></h2>
-  <img id="bridge-image" alt="Bridge image" style="max-width:400px; display:block; margin-bottom:10px;" />
-  <p><strong>River:</strong> <span id="bridge-river"></span></p>
-  <p><strong>Location:</strong> <span id="bridge-location"></span></p>
-  <p><strong>Year Built:</strong> <span id="bridge-year"></span></p>
-  <p><strong>Type:</strong> <span id="bridge-type"></span></p>
-  <p id="bridge-description"></p>
-</section>
-
-<section class="famous-bridges">
-  <h2>Famous Bridges</h2>
-  <div class="bridge-grid">
-    {% for b in famous_bridges %}
-    <div class="bridge-card">
-      <img src="{{ b.image_url }}" alt="{{ b.name }}" />
-      <h3>{{ b.name }}</h3>
-      <p>
-        {% if b.district and b.district.state %}
-          {{ b.district.name }}, {{ b.district.state.name }}
-        {% else %}
-          Location unknown
-        {% endif %}
-      </p>
-    </div>
-    {% endfor %}
+<!-- 🏗️ Famous Bridges Section -->
+<h2>Famous Bridges</h2>
+<div class="bridge-grid">
+  {% for b in famous_bridges %}
+  <div class="bridge-card">
+    {% if b.image_url %}
+      <img src="{{ b.image_url }}" alt="{{ b.name }}" style="width:100%; height:auto; border-radius:8px;">
+    {% else %}
+      <img src="https://via.placeholder.com/400x200?text=No+Image" alt="No image available" style="width:100%; height:auto; border-radius:8px;">
+    {% endif %}
+    <h3>{{ b.name }}</h3>
+    <p>{{ b.district.name }}, {{ b.district.state.name }}</p>
   </div>
-</section>
+  {% endfor %}
+</div>
 
+<!-- ⚙️ Dynamic Dropdown Script -->
 <script>
   const countrySelect = document.getElementById("country-select");
   const stateSelect = document.getElementById("state-select");
   const districtSelect = document.getElementById("district-select");
   const bridgeSelect = document.getElementById("bridge-select");
-  const viewBtn = document.getElementById("view-bridge-btn");
+  const viewBtn = document.getElementById("view-btn");
 
-  const detailsSection = document.getElementById("bridge-details");
-  const bridgeName = document.getElementById("bridge-name");
-  const bridgeImage = document.getElementById("bridge-image");
-  const bridgeRiver = document.getElementById("bridge-river");
-  const bridgeLocation = document.getElementById("bridge-location");
-  const bridgeYear = document.getElementById("bridge-year");
-  const bridgeType = document.getElementById("bridge-type");
-  const bridgeDescription = document.getElementById("bridge-description");
-
+  // Load states when country changes
   countrySelect.addEventListener("change", async () => {
     const countryId = countrySelect.value;
     stateSelect.innerHTML = '<option value="">-- Select State --</option>';
@@ -114,6 +96,7 @@
     stateSelect.disabled = false;
   });
 
+  // Load districts when state changes
   stateSelect.addEventListener("change", async () => {
     const stateId = stateSelect.value;
     districtSelect.innerHTML = '<option value="">-- Select District --</option>';
@@ -135,6 +118,7 @@
     districtSelect.disabled = false;
   });
 
+  // Load bridges when district changes
   districtSelect.addEventListener("change", async () => {
     const districtId = districtSelect.value;
     bridgeSelect.innerHTML = '<option value="">-- Select Bridge --</option>';
@@ -154,26 +138,15 @@
     bridgeSelect.disabled = false;
   });
 
+  // Enable View button
   bridgeSelect.addEventListener("change", () => {
     viewBtn.disabled = !bridgeSelect.value;
   });
 
-  viewBtn.addEventListener("click", async () => {
-    const bridgeId = bridgeSelect.value;
-    if (!bridgeId) return;
-    const res = await fetch(`/api/bridges/${bridgeId}`);
-    const b = await res.json();
-
-    bridgeName.textContent = b.name;
-    bridgeImage.src = b.image_url || "";
-    bridgeImage.style.display = b.image_url ? "block" : "none";
-    bridgeRiver.textContent = b.river_name || "N/A";
-    bridgeLocation.textContent = `${b.district}, ${b.state}, ${b.country}`;
-    bridgeYear.textContent = b.year_built || "Unknown";
-    bridgeType.textContent = b.bridge_type || "Unknown";
-    bridgeDescription.textContent = b.description || "";
-
-    detailsSection.style.display = "block";
+  // View bridge details (redirect)
+  viewBtn.addEventListener("click", () => {
+    const id = bridgeSelect.value;
+    if (id) window.location.href = `/api/bridges/${id}`;
   });
 </script>
 

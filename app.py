@@ -42,6 +42,7 @@ def handle_first_request():
         first_request_handled = True
         db.create_all()
 
+        # Seed data only if empty
         if not Country.query.first():
             india = Country(name="India")
             db.session.add(india)
@@ -49,19 +50,64 @@ def handle_first_request():
             ap = State(name="Andhra Pradesh", country=india)
             db.session.add(ap)
 
-            prakasam = District(name="Prakasam", state=ap)
-            db.session.add(prakasam)
+            # Add all major Andhra Pradesh districts
+            districts_data = [
+                "East Godavari",
+                "West Godavari",
+                "Krishna",
+                "Guntur",
+                "Prakasam",
+                "Nellore",
+                "Visakhapatnam",
+                "Vizianagaram",
+                "Srikakulam",
+                "Kurnool",
+                "Anantapur",
+                "Chittoor",
+                "YSR Kadapa",
+            ]
 
-            bridge = Bridge(
-                name="Sample Bridge",
-                district=prakasam,
-                river_name="Example River",
-                year_built=2000,
-                bridge_type="Beam bridge",
-                description="Demo bridge for the site.",
-                image_url="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Howrah_Bridge_2020.jpg/400px-Howrah_Bridge_2020.jpg",
+            district_objects = []
+            for name in districts_data:
+                d = District(name=name, state=ap)
+                db.session.add(d)
+                district_objects.append(d)
+
+            db.session.flush()  # populate district IDs without full commit
+
+            # Lookup helper
+            def find_district(name):
+                return next((d for d in district_objects if d.name == name), None)
+
+            # Add famous bridges
+            east_godavari = find_district("East Godavari")
+            krishna = find_district("Krishna")
+
+            godavari_bridge = Bridge(
+                name="Godavari Bridge (Havelock Bridge)",
+                district=east_godavari,
+                river_name="Godavari River",
+                year_built=1900,
+                bridge_type="Truss railway bridge",
+                description=(
+                    "Historic railway bridge in Rajahmundry across the Godavari River, "
+                    "also known as Havelock Bridge."
+                ),
+                image_url="https://img.traveltriangle.com/blog/wp-content/uploads/2024/06/Godavari-Bridge-OG.jpg",
             )
-            db.session.add(bridge)
+            db.session.add(godavari_bridge)
+
+            prakasam_barrage = Bridge(
+                name="Prakasam Barrage",
+                district=krishna,
+                river_name="Krishna River",
+                year_built=1957,
+                bridge_type="Arch bridge",
+                description="A famous barrage across the Krishna River.",
+                image_url="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0f/b5/db/4f/prakasam-barrage.jpg?w=1200&h=-1&s=1",
+            )
+            db.session.add(prakasam_barrage)
+
             db.session.commit()
 
 
@@ -110,13 +156,17 @@ def logout():
 def home():
     countries = Country.query.all()
     famous_bridges = Bridge.query.limit(6).all()
-    return render_template("home.html", countries=countries, famous_bridges=famous_bridges)
+    return render_template(
+        "home.html",
+        countries=countries,
+        famous_bridges=famous_bridges,
+    )
 
 
 # ========== SEARCH FEATURE ==========
 
 
-# Update the search route to handle queries and return matching bridges
+# Update the search route to handle specific bridge name searches
 @app.route("/search")
 def search():
     query = request.args.get("q", "")
@@ -130,6 +180,10 @@ def search():
                 Bridge.description.ilike(f"%{query}%")
             )
         ).all()
+
+        # If exactly one result is found, redirect to the bridge detail page
+        if len(results) == 1:
+            return redirect(url_for("api_bridge_detail", bridge_id=results[0].id))
 
     return render_template("search_results.html", query=query, results=results)
 
@@ -167,20 +221,19 @@ def api_bridges():
 @app.route("/api/bridges/<int:bridge_id>")
 def api_bridge_detail(bridge_id):
     b = Bridge.query.get_or_404(bridge_id)
-    return jsonify(
-        {
-            "id": b.id,
-            "name": b.name,
-            "river_name": b.river_name,
-            "year_built": b.year_built,
-            "bridge_type": b.bridge_type,
-            "description": b.description,
-            "image_url": b.image_url,
-            "district": b.district.name,
-            "state": b.district.state.name,
-            "country": b.district.state.country.name,
-        }
+    return render_template(
+        "bridge_detail.html",
+        bridge=b
     )
+
+
+# ---------- Bridge detail page (HTML) ----------
+
+@app.route("/bridge/<int:bridge_id>")
+def bridge_detail(bridge_id):
+    bridge = Bridge.query.get_or_404(bridge_id)
+    return render_template("bridge_detail.html", bridge=bridge)
+
 
 
 # ========== EDITOR PAGE ==========
